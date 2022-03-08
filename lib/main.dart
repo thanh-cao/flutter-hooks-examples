@@ -21,24 +21,38 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// a simple Stream of string data which gets a new time every 1 second
-Stream<String> getTime() => Stream.periodic(
-      const Duration(seconds: 1),
-      (_) => DateTime.now().toIso8601String(),
-    );
-
 class HomePage extends HookWidget {
-  // is stateless widget with states
   const HomePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // this is a Stream hook which returns an AsyncSnapshot of a type.
-    //Snapshot has methods like hasData() or data variable
-    final dateTime = useStream(getTime());
+    final controller = useTextEditingController();
+    final text = useState('');
+    // the useEffect function will be called everytime there is a hot reload
+    // so we need to give a key to this useEffect to tell it that if the key is
+    // the same, don't call this effect again
+    useEffect(
+      () {
+        controller.addListener(() {
+          text.value = controller.text;
+        });
+        return null;
+      },
+      [controller], // controller here is the key to identify this effect
+    );
+
     return Scaffold(
-        appBar: AppBar(
-      title: Text(dateTime.data ?? 'Home Page'), // .data is from snapshot
-    ));
+      appBar: AppBar(
+        title: const Text('Home Page'),
+      ),
+      body: Column(
+        children: [
+          TextField(
+            controller: controller,
+          ),
+          Text('You typed ${text.value}'),
+        ],
+      ),
+    );
   }
 }
